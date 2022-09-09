@@ -1,8 +1,13 @@
 import bs4
 import requests
 import regex as re
+from Netology.python_advanced.Decorators.main import loger
+import os
+
+PATH = os.path.realpath(__file__)
 
 
+@loger(PATH)
 def find_posts_in_habr(html_text: str, keyword: list, headers=None):
     base_url = 'https://habr.com'
     pattern_ = "|".join([fr'(\s{x}\s)' for x in keyword])
@@ -20,3 +25,4 @@ def find_posts_in_habr(html_text: str, keyword: list, headers=None):
             article_date = article.find('time').attrs['title']
 
             print(f"{article_date} - {article_title} - {article_link}")
+
