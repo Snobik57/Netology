@@ -5,6 +5,15 @@ from Netology.python_advanced.tests.homework_5 import whose_docs, doc_in_shelf, 
 
 
 class TestFunction(unittest.TestCase):
+    @classmethod
+    def setUp(self):
+        print('start to test')
+
+    def test_get_all_doc_owners_name(self):
+        with patch('builtins.input', return_value='2207 876234'):
+            assert input() == '2207 876234'
+            result = whose_docs(documents)
+            self.assertEqual("Владелец документа - Василий Гупкин\n", result)
     def test_whose_docs(self):
         with patch('builtins.input', return_value='2207 876234'):
             assert input() == '2207 876234'
@@ -46,3 +55,7 @@ class TestFunction(unittest.TestCase):
             assert input() == '11-2'
             result = f'Удаление прошло успешно.\n'
             self.assertMultiLineEqual(del_doc(documents, directories), result)
+
+
+if __name__ == "__main__":
+    unittest.main()

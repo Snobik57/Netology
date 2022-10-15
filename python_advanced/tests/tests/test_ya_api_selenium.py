@@ -7,9 +7,9 @@ from time import sleep
 class YaPassportSearch(unittest.TestCase):
 
     def setUp(self):
-        self.driver = webdriver.Firefox()
+        self.driver = webdriver.Chrome()
 
-    def test_authorization(self):
+    async def test_authorization(self):
         driver = self.driver
         driver.get('https://passport.yandex.ru/auth/')
         elem = driver.find_element(by='css selector', value='div.AuthLoginInputToggle-type')
