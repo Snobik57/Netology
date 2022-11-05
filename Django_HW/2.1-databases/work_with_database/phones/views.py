@@ -17,7 +17,6 @@ def show_catalog(request):
     elif sort == 'max_price':
         phones = phones.order_by('-price')
     template = 'catalog.html'
-
     context = {
         'phones': phones
     }
@@ -27,7 +26,6 @@ def show_catalog(request):
 def show_product(request, slug):
     template = 'product.html'
     phone = Phone.objects.filter(slug=slug)[0]
-    print(phone.name)
     context = {
         'phone': phone
     }
