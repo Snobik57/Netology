@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from advertisements.filters import AdvertisementFilter
@@ -11,7 +12,7 @@ from advertisements.serializers import AdvertisementSerializer
 class AdvertisementViewSet(ModelViewSet):
     """ViewSet для объявлений."""
 
-    queryset = Advertisement.objects.all()
+    queryset = Advertisement.objects.exclude(status='DRAFT')
     serializer_class = AdvertisementSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = AdvertisementFilter
@@ -19,10 +20,31 @@ class AdvertisementViewSet(ModelViewSet):
     def get_permissions(self):
         """Получение прав для действий."""
 
-        if self.request.user.is_staff:
-            return [IsAuthenticated()]
-        if self.action == 'create':
+        # Админы могут менять и удалять любые объявления.
+        if self.action == 'create' or self.request.user.is_staff:
             return [IsAuthenticated(), ]
         if self.action in ["update", "partial_update", "destroy", ]:
             return [IsAuthenticated(), IsOwnerOrReadOnly()]
+
         return []
+
+    def list(self, request, *args, **kwargs):
+        """Пока объявление в черновике, оно показывается только автору объявления,
+        другим пользователям оно недоступно"""
+        if self.request.user:
+            queryset_draft = Advertisement.objects.filter(
+                creator=self.request.user,
+                status='DRAFT'
+            )
+            queryset = self.queryset.union(queryset_draft)
+            queryset = self.filter_queryset(queryset)
+            page = self.paginate_queryset(queryset)
+
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        return super().list(request, args, kwargs)

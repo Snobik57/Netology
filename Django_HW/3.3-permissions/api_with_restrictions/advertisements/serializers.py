@@ -44,8 +44,11 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         method = self.context['request'].method
         status = self.initial_data.get('status')
 
-        if len(objects) >= 10 and method == 'POST' and not status or status == 'OPEN':
+        if len(objects) >= 10 and method in ['POST', 'PUT'] and not status or status == 'OPEN':
             raise ValidationError('Превышено количество открытых объявлений')
         if len(objects) >= 10 and status == 'OPEN' and method == 'PATCH':
             raise ValidationError('Превышено количество открытых объявлений')
+        if method == 'GET':
+
+            print(objects)
         return data
