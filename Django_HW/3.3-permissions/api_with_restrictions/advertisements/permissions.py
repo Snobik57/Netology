@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from rest_framework.permissions import BasePermission
 
 

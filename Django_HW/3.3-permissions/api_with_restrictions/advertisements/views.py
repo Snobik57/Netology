@@ -33,10 +33,11 @@ class AdvertisementViewSet(ModelViewSet):
         другим пользователям оно недоступно"""
         if self.request.user:
             queryset_draft = Advertisement.objects.filter(
-                creator=self.request.user,
+                creator__id=self.request.user.id,
                 status='DRAFT'
             )
             queryset = self.queryset.union(queryset_draft)
+            queryset = Advertisement.objects.filter(id__in=queryset.values('id'))
             queryset = self.filter_queryset(queryset)
             page = self.paginate_queryset(queryset)
 
@@ -47,4 +48,4 @@ class AdvertisementViewSet(ModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
 
-        return super().list(request, args, kwargs)
+        return super().list(request, *args, **kwargs)
