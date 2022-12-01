@@ -21,31 +21,46 @@ class AdvertisementViewSet(ModelViewSet):
         """Получение прав для действий."""
 
         # Админы могут менять и удалять любые объявления.
-        if self.action == 'create' or self.request.user.is_staff:
+        if self.action == 'create':
             return [IsAuthenticated(), ]
         if self.action in ["update", "partial_update", "destroy", ]:
             return [IsAuthenticated(), IsOwnerOrReadOnly()]
 
         return []
 
-    def list(self, request, *args, **kwargs):
+    # Variant 1
+    def get_queryset(self):
         """Пока объявление в черновике, оно показывается только автору объявления,
         другим пользователям оно недоступно"""
-        if self.request.user:
-            queryset_draft = Advertisement.objects.filter(
-                creator__id=self.request.user.id,
-                status='DRAFT'
-            )
-            queryset = self.queryset.union(queryset_draft)
-            queryset = Advertisement.objects.filter(id__in=queryset.values('id'))
-            queryset = self.filter_queryset(queryset)
-            page = self.paginate_queryset(queryset)
+        queryset = super().get_queryset()
+        user = self.request.user
 
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
+        if user.is_authenticated:
+            queryset_draft = Advertisement.objects.filter(creator=user, status='DRAFT')
+            queryset = queryset | queryset_draft
 
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
+        return queryset
 
-        return super().list(request, *args, **kwargs)
+    # Variant 2
+
+    # def list(self, request, *args, **kwargs):
+    #     """Пока объявление в черновике, оно показывается только автору объявления,
+    #     другим пользователям оно недоступно"""
+    #     if self.request.user:
+    #         queryset_draft = Advertisement.objects.filter(
+    #             creator__id=self.request.user.id,
+    #             status='DRAFT'
+    #         )
+    #         queryset = self.queryset.union(queryset_draft)
+    #         queryset = Advertisement.objects.filter(id__in=queryset.values('id'))
+    #         queryset = self.filter_queryset(queryset)
+    #         page = self.paginate_queryset(queryset)
+    #
+    #         if page is not None:
+    #             serializer = self.get_serializer(page, many=True)
+    #             return self.get_paginated_response(serializer.data)
+    #
+    #         serializer = self.get_serializer(queryset, many=True)
+    #         return Response(serializer.data)
+    #
+    #     return super().list(request, *args, **kwargs)
